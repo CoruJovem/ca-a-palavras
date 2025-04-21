@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caça-Palavras da Sara</title>
+    <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #166088;
+            --background-color: #f0f4f8;
+            --cell-color: #ffffff;
+            --selected-color: #ff9e80;
+            --found-color: #a5d6a7;
+            --text-color: #333333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+            color: var(--text-color);
+            margin: 0;
+            min-height: 100vh;
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            margin: 10px 0 15px;
+            text-align: center;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        
+        button:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+        
+        .game-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            max-width: 1000px;
+            width: 100%;
+        }
+        
+        .word-search {
+            display: grid;
+            grid-template-columns: repeat(15, minmax(0, 1fr));
+            gap: 1px;
+            background-color: #d1d9e6;
+            padding: 8px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            touch-action: manipulation;
+        }
+        
+        .cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--cell-color);
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            border-radius: 2px;
+            transition: all 0.1s;
+            font-size: clamp(12px, 2vw, 18px);
+        }
+        
+        .cell.selected {
+            background-color: var(--selected-color);
+        }
+        
+        .cell.found {
+            background-color: var(--found-color);
+        }
+        
+        .word-list-container {
+            background-color: white;
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            min-width: 180px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .word-list h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 1.2rem;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 8px;
+        }
+        
+        .word-item {
+            margin: 6px 0;
+            padding: 4px 6px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+        
+        .word-item.found {
+            text-decoration: line-through;
+            color: #2e7d32;
+            background-color: #e8f5e9;
+        }
+        
+        .congratulations {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(240, 244, 248, 0.95);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            text-align: center;
+        }
+        
+        .congratulations-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            max-width: 90%;
+            width: 400px;
+        }
+        
+        .crown {
+            font-size: 60px;
+            margin-bottom: 15px;
+            animation: bounce 1.5s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .hearts {
+            font-size: 30px;
+            margin: 15px 0;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .music-control {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            background-color: var(--primary-color);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+        
+        .theme-selector {
+            position: relative;
+        }
+        
+        .theme-options {
+            display: none;
+            position: absolute;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 5px 0;
+            z-index: 5;
+            width: max-content;
+        }
+        
+        .theme-options button {
+            background: none;
+            color: var(--text-color);
+            text-align: left;
+            width: 100%;
+            border-radius: 0;
+            padding: 8px 15px;
+        }
+        
+        .theme-options button:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .theme-selector:hover .theme-options {
+            display: block;
+        }
+        
+        @media (max-width: 600px) {
+            .game-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .word-search {
+                grid-template-columns: repeat(15, minmax(0, 20px));
+                padding: 5px;
+            }
+            
+            .cell {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Caça-Palavras da Sara</h1>
+    
+    <div class="controls">
+        <button id="restartBtn">Reiniciar</button>
+        <div class="theme-selector">
+            <button id="themeBtn">Tema: Neutro</button>
+            <div class="theme-options">
+                <button data-theme="neutral">Neutro</button>
+                <button data-theme="computer">Computador</button>
+                <button data-theme="life">Viver</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="game-container">
+        <div class="word-search" id="wordSearch"></div>
+        
+        <div class="word-list-container">
+            <div class="word-list">
+                <h2>Palavras para encontrar</h2>
+                <div id="wordList"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="congratulations" id="congratulations">
+        <div class="congratulations-content">
+            <div class="crown">👑</div>
+            <h2>Parabéns!</h2>
+            <div class="hearts">🎉 🎉 🎉</div>
+            <p>Você encontrou todas as palavras!</p>
+            <button id="restartCongratsBtn">Jogar Novamente</button>
+        </div>
+    </div>
+
+    <div class="music-control" id="musicControl">🎵</div>
+    
+    <audio loop id="backgroundMusic">
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // Temas e palavras
+        const themes = {
+            neutral: {
+                name: "Neutro",
+                words: ["FELICIDADE", "HARMONIA", "PAZ", "AMIZADE", "RESPEITO", 
+                        "EQUILIBRIO", "SERENIDADE", "CONFIANCA", "DIVERSIDADE", "SOLIDARIEDADE"],
+                colors: {
+                    primary: "#4a6fa5",
+                    secondary: "#166088",
+                    background: "#f0f4f8",
+                    cell: "#ffffff",
+                    selected: "#ff9e80",
+                    found: "#a5d6a7",
+                    text: "#333333"
+                }
+            },
+            computer: {
+                name: "Computador",
+                words: ["PROGRAMACAO", "ALGORITMO", "HARDWARE", "SOFTWARE", "INTERNET", 
+                        "BANCODEDADOS", "PROCESSADOR", "MEMORIA", "SISTEMA", "REDE"],
+                colors: {
+                    primary: "#6a1b9a",
+                    secondary: "#9c27b0",
+                    background: "#f3e5f5",
+                    cell: "#ffffff",
+                    selected: "#ce93d8",
+                    found: "#c5e1a5",
+                    text: "#333333"
+                }
+            },
+            life: {
+                name: "Viver",
+                words: ["EXPERIENCIA", "CRESCIMENTO", "APRENDIZADO", "SUPERACAO", "MOMENTO", 
+                        "FELICIDADE", "COMPARTILHAR", "EVOLUCAO", "ESPERANCA", "GRATIDAO"],
+                colors: {
+                    primary: "#2e7d32",
+                    secondary: "#43a047",
+                    background: "#e8f5e9",
+                    cell: "#ffffff",
+                    selected: "#a5d6a7",
+                    found: "#ffcc80",
+                    text: "#333333"
+                }
+            }
+        };
+
+        // Configurações do jogo
+        const config = {
+            gridSize: 15,
+            musicEnabled: false
+        };
+
+        // Estado do jogo
+        const state = {
+            grid: [],
+            selectedCells: [],
+            foundWords: [],
+            currentSelection: [],
+            isMouseDown: false,
+            currentTheme: 'neutral',
+            musicPlaying: false
+        };
+
+        // Elementos DOM
+        const elements = {
+            wordSearch: document.getElementById('wordSearch'),
+            wordList: document.getElementById('wordList'),
+            congratulations: document.getElementById('congratulations'),
+            restartBtn: document.getElementById('restartBtn'),
+            restartCongratsBtn: document.getElementById('restartCongratsBtn'),
+            musicControl: document.getElementById('musicControl'),
+            backgroundMusic: document.getElementById('backgroundMusic'),
+            themeBtn: document.getElementById('themeBtn')
+        };
+
+        // Inicialização do jogo
+        function initGame() {
+            applyTheme(state.currentTheme);
+            createEmptyGrid();
+            placeWords();
+            fillEmptySpaces();
+            renderGrid();
+            renderWordList();
+            setupEventListeners();
+        }
+
+        // Aplica o tema selecionado
+        function applyTheme(themeKey) {
+            const theme = themes[themeKey];
+            state.currentTheme = themeKey;
+            elements.themeBtn.textContent = `Tema: ${theme.name}`;
+            
+            // Aplica cores CSS
+            document.documentElement.style.setProperty('--primary-color', theme.colors.primary);
+            document.documentElement.style.setProperty('--secondary-color', theme.colors.secondary);
+            document.documentElement.style.setProperty('--background-color', theme.colors.background);
+            document.documentElement.style.setProperty('--cell-color', theme.colors.cell);
+            document.documentElement.style.setProperty('--selected-color', theme.colors.selected);
+            document.documentElement.style.setProperty('--found-color', theme.colors.found);
+            document.documentElement.style.setProperty('--text-color', theme.colors.text);
+        }
+
+        // Cria grid vazio
+        function createEmptyGrid() {
+            state.grid = Array(config.gridSize).fill().map(() => 
+                Array(config.gridSize).fill().map(() => ({ 
+                    letter: '', 
+                    selected: false, 
+                    found: false 
+                }))
+            );
+        }
+
+        // Posiciona as palavras no grid
+        function placeWords() {
+            const directions = [
+                { dr: 0, dc: 1 }, { dr: 1, dc: 0 }, { dr: 1, dc: 1 },
+                { dr: 1, dc: -1 }, { dr: -1, dc: 1 }, { dr: -1, dc: -1 }
+            ];
+            
+            const words = themes[state.currentTheme].words;
+            
+            words.forEach(word => {
+                let placed = false;
+                let attempts = 0;
+                
+                while (!placed && attempts < 50) {
+                    attempts++;
+                    const direction = directions[Math.floor(Math.random() * directions.length)];
+                    const dr = direction.dr;
+                    const dc = direction.dc;
+                    
+                    const startRow = Math.floor(Math.random() * config.gridSize);
+                    const startCol = Math.floor(Math.random() * config.gridSize);
+                    const endRow = startRow + dr * (word.length - 1);
+                    const endCol = startCol + dc * (word.length - 1);
+                    
+                    if (endRow < 0 || endRow >= config.gridSize || endCol < 0 || endCol >= config.gridSize) {
+                        continue;
+                    }
+                    
+                    let canPlace = true;
+                    for (let i = 0; i < word.length; i++) {
+                        const row = startRow + dr * i;
+                        const col = startCol + dc * i;
+                        const cell = state.grid[row][col];
+                        
+                        if (cell.letter !== '' && cell.letter !== word[i]) {
+                            canPlace = false;
+                            break;
+                        }
+                    }
+                    
+                    if (canPlace) {
+                        for (let i = 0; i < word.length; i++) {
+                            const row = startRow + dr * i;
+                            const col = startCol + dc * i;
+                            state.grid[row][col].letter = word[i];
+                            state.grid[row][col].word = word;
+                        }
+                        placed = true;
+                    }
+                }
+            });
+        }
+
+        // Preenche espaços vazios
+        function fillEmptySpaces() {
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            for (let i = 0; i < config.gridSize; i++) {
+                for (let j = 0; j < config.gridSize; j++) {
+                    if (state.grid[i][j].letter === '') {
+                        state.grid[i][j].letter = letters[Math.floor(Math.random() * letters.length)];
+                    }
+                }
+            }
+        }
+
+        // Renderiza o grid
+        function renderGrid() {
+            elements.wordSearch.innerHTML = '';
+            
+            for (let i = 0; i < config.gridSize; i++) {
+                for (let j = 0; j < config.gridSize; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.textContent = state.grid[i][j].letter;
+                    
+                    if (state.grid[i][j].selected) cell.classList.add('selected');
+                    if (state.grid[i][j].found) cell.classList.add('found');
+                    
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+                    
+                    // Eventos otimizados para performance
+                    cell.addEventListener('mousedown', handleCellStart);
+                    cell.addEventListener('mouseenter', handleCellHover);
+                    cell.addEventListener('touchstart', handleCellStart, { passive: false });
+                    
+                    elements.wordSearch.appendChild(cell);
+                }
+            }
+        }
+
+        // Renderiza a lista de palavras
+        function renderWordList() {
+            elements.wordList.innerHTML = '';
+            
+            themes[state.currentTheme].words.forEach(word => {
+                const wordElement = document.createElement('div');
+                wordElement.className = 'word-item';
+                wordElement.textContent = word;
+                
+                if (state.foundWords.includes(word)) {
+                    wordElement.classList.add('found');
+                }
+                
+                elements.wordList.appendChild(wordElement);
+            });
+        }
+
+        // Configura listeners de eventos
+        function setupEventListeners() {
+            // Eventos do mouse/toque
+            document.addEventListener('mouseup', handleSelectionEnd);
+            document.addEventListener('touchend', handleSelectionEnd);
+            
+            // Eventos dos controles
+            elements.restartBtn.addEventListener('click', restartGame);
+            elements.restartCongratsBtn.addEventListener('click', restartGame);
+            elements.musicControl.addEventListener('click', toggleMusic);
+            
+            // Eventos do seletor de tema
+            document.querySelectorAll('.theme-options button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    applyTheme(btn.dataset.theme);
+                    restartGame();
+                });
+            });
+        }
+
+        // Manipuladores de eventos otimizados
+        function handleCellStart(e) {
+            e.preventDefault();
+            state.isMouseDown = true;
+            
+            const cell = e.target.closest('.cell');
+            if (!cell) return;
+            
+            const row = parseInt(cell.dataset.row);
+            const col = parseInt(cell.dataset.col);
+            
+            state.currentSelection = [{ row, col }];
+            state.grid[row][col].selected = true;
+            renderGrid();
+        }
+
+        function handleCellHover(e) {
+            if (!state.isMouseDown || state.currentSelection.length === 0) return;
+            
+            const cell = e.target.closest('.cell');
+            if (!cell) return;
+            
+            const row = parseInt(cell.dataset.row);
+            const col = parseInt(cell.dataset.col);
+            const last = state.currentSelection[state.currentSelection.length - 1];
+            
+            const rowDiff = Math.abs(row - last.row);
+            const colDiff = Math.abs(col - last.col);
+            
+            if (rowDiff <= 1 && colDiff <= 1 && !(rowDiff === 0 && colDiff === 0)) {
+                const dr = row - last.row;
+                const dc = col - last.col;
+                const first = state.currentSelection[0];
+                
+                // Limpa seleção anterior
+                state.currentSelection.forEach(c => {
+                    state.grid[c.row][c.col].selected = false;
+                });
+                
+                // Cria nova seleção
+                state.currentSelection = [];
+                const maxLength = Math.max(
+                    Math.abs(row - first.row),
+                    Math.abs(col - first.col)
+                ) + 1;
+                
+                for (let i = 0; i < maxLength; i++) {
+                    const newRow = first.row + (row > first.row ? i : (row < first.row ? -i : 0));
+                    const newCol = first.col + (col > first.col ? i : (col < first.col ? -i : 0));
+                    
+                    if (newRow >= 0 && newRow < config.gridSize && newCol >= 0 && newCol < config.gridSize) {
+                        state.currentSelection.push({ row: newRow, col: newCol });
+                        state.grid[newRow][newCol].selected = true;
+                    }
+                }
+                
+                renderGrid();
+            }
+        }
+
+        function handleSelectionEnd() {
+            if (!state.isMouseDown) return;
+            state.isMouseDown = false;
+            checkSelection();
+        }
+
+        // Verifica a seleção
+        function checkSelection() {
+            if (state.currentSelection.length < 3) {
+                clearSelection();
+                return;
+            }
+            
+            const selectedWord = state.currentSelection.map(c => 
+                state.grid[c.row][c.col].letter
+            ).join('');
+            
+            const reversedWord = selectedWord.split('').reverse().join('');
+            const words = themes[state.currentTheme].words;
+            const matchedWord = words.find(word => 
+                word === selectedWord || word === reversedWord
+            );
+            
+            if (matchedWord && !state.foundWords.includes(matchedWord)) {
+                state.foundWords.push(matchedWord);
+                
+                state.currentSelection.forEach(c => {
+                    state.grid[c.row][c.col].found = true;
+                    state.grid[c.row][c.col].selected = false;
+                });
+                
+                if (state.foundWords.length === words.length) {
+                    setTimeout(() => {
+                        elements.congratulations.style.display = 'flex';
+                    }, 300);
+                }
+            } else {
+                clearSelection();
+            }
+            
+            state.currentSelection = [];
+            renderGrid();
+            renderWordList();
+        }
+
+        // Limpa seleção
+        function clearSelection() {
+            state.currentSelection.forEach(c => {
+                state.grid[c.row][c.col].selected = false;
+            });
+            state.currentSelection = [];
+            renderGrid();
+        }
+
+        // Reinicia o jogo
+        function restartGame() {
+            elements.congratulations.style.display = 'none';
+            state.foundWords = [];
+            initGame();
+        }
+
+        // Controle de música
+        function toggleMusic() {
+            state.musicPlaying = !state.musicPlaying;
+            
+            if (state.musicPlaying) {
+                elements.backgroundMusic.play();
+                elements.musicControl.textContent = '🔊';
+            } else {
+                elements.backgroundMusic.pause();
+                elements.musicControl.textContent = '🔇';
+            }
+        }
+
+        // Inicializa o jogo quando a página carrega
+        window.addEventListener('DOMContentLoaded', () => {
+            initGame();
+            
+            // Evento para touchmove em dispositivos móveis
+            document.addEventListener('touchmove', (e) => {
+                if (state.isMouseDown) {
+                    const touch = e.touches[0];
+                    const element = document.elementFromPoint(touch.clientX, touch.clientY);
+                    if (element && element.classList.contains('cell')) {
+                        const event = new MouseEvent('mouseenter', {
+                            view: window,
+                            bubbles: true,
+                            cancelable: true
+                        });
+                        element.dispatchEvent(event);
+                    }
+                }
+            }, { passive: false });
+        });
+    </script>
+</body>
+</html>
