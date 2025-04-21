@@ -6,7 +6,102 @@
     <title>minhas criaçoes</title>
 </head>
 <body>
-    <h1>meu Caça Palavras</h1>
-
+ <h1>Algumas Distrações</h1>
+    <p>divirtam-se</p>
 </body>
-</html>
+
+
+<button onclick="caça-aqui.html">CAÇA PALAVRAS</button>
+<button onclick="jogo-da-velha.html">JOGO DA VELHA</button>
+<button onclick="jogo-da-memoria.html">JOGO DA MEMORIA</button>
+<button onclick="jogo-da-forca.html">JOGO DA FORCA</button>
+<script>
+    document.querySelectorAll('button').forEach(button => {
+        button.addEventListener('click', function() {
+            window.location.href = this.getAttribute('onclick');
+        });
+    });
+</script>
+<style>
+  
+   body {
+       margin: 0;
+       padding: 0;
+         background-color: #f0f0f0; /* Cor de fundo */
+        
+       background-size: cover;   
+         background-position: center;   
+         background-repeat: no-repeat;  
+         color: #000000; /* Cor do texto */
+         font-size: 22px; /* Tamanho da fonte */
+            line-height: 1.5; /* Espaçamento entre linhas */
+            text-align: center; /* Centraliza o texto */
+            font-weight: bold; /* Negrito */
+            font-style: italic; /* Itálico */
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0); /* Sombra do texto */  
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0); /* Sombra da caixa */
+            border-radius: 10px; /* Bordas arredondadas */
+            padding: 20px; /* Espaçamento interno */
+            opacity: 10.9; /* Opacidade do fundo */
+
+         background-image: url('C:\Users\ALVES PASCOAL\Downloads\logo.png'); /* Imagem de fundo */
+            background-size: cover; /* Cobre toda a tela */
+            background-position: center; /* Centraliza a imagem de fundo */
+            background-repeat: no-repeat; /* Não repete a imagem de fundo */
+            background-attachment: fixed; /* Fixa a imagem de fundo */
+            background-color: rgba(255, 255, 255, 0.279); /* Cor de fundo com opacidade */
+            background-blend-mode: overlay; /* Modo de mesclagem da imagem de fundo */
+            background-color: #f0f0f0; /* Cor de fundo */
+            opacity: 0.9; /* Opacidade do fundo */
+            
+       font-family: Arial, sans-serif;
+       
+       
+       min-height: 100vh;
+   }
+
+   .container {
+       display: flex;
+       flex-direction: column; /* Colocar botões em coluna */
+       align-items: center; /* Alinha os itens no topo */
+       justify-content: space-between; /* Espaço entre imagem e botões */
+    
+       padding: 20px;
+       width: 100%;
+       box-sizing: border-box;
+   }
+
+   .buttons {
+       display:flex;    
+       flex-direction: column; /* Colocar botões em coluna */
+       align-items: center; /* Alinha os botões à direita */
+       margin-top: 0; /* Remove margem superior */
+       gap: 10px; /* Espaço entre botões */
+   }
+
+   button {
+       padding: 15px 30px;
+       font-size: 18px;
+       background-color: #fffb00e7;
+       color: rgb(0, 0, 0);
+       border: none;
+       border-radius: 8px;
+       cursor: pointer;
+       transition: background-color 0.3s;
+       width: 150px; /* Largura fixa para os botões */
+       text-align: center;
+   }
+
+   button:hover {
+       background-color: #35b731c0;
+   }
+
+   img {
+       border-radius: 12px;
+       max-height: 300px; /* Altura máxima para a imagem */
+   }
+</style>
+</head>
+<body>
+<div class="container">
+   <!-- Imagem à esquerda -->
